@@ -2,7 +2,13 @@ import * as THREE from 'three';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; //Left to rotate, middle to zoom in/out, right to move
 
+import Stats from 'three/examples/jsm/libs/stats.module.js';
+
 import { World } from './world';
+import { createUI } from './ui';
+
+const stats = new Stats();
+document.body.append(stats.dom);
 
 //Renderer setup
 
@@ -55,12 +61,16 @@ function setupLights() {
 
 //Render loop
 function animate() {
-    requestAnimationFrame(animate);
+    
     cube.rotation.x += 0.01;
     cube.rotation.y += 0.01;
     cube.position.y = 1.5;
+
+
+    requestAnimationFrame(animate);
     renderer.render(scene, camera);
 
+    stats.update();
 }
 
 window.addEventListener('resize', () => {
@@ -70,5 +80,5 @@ window.addEventListener('resize', () => {
 })
 
 setupLights();
-
+createUI(world);
 animate();

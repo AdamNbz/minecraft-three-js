@@ -11,7 +11,6 @@ import { Player } from './player.js';
 import { Physics } from './physics.js';
 
 const stats = new Stats();
-const physics = new Physics();
 document.body.append(stats.dom);
 
 //Renderer setup
@@ -37,7 +36,7 @@ controls.update();
 
 //Scene setup
 const scene = new THREE.Scene();
-
+const physics = new Physics(scene);
 const world = new World();
 world.generate();
 scene.add(world);
@@ -96,6 +95,6 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth,window.innerHeight);
 })
 
+createUI(world,player,physics);
 setupLights();
-createUI(world,player);
 animate();

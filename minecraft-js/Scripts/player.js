@@ -11,7 +11,7 @@ export class Player {
 
     input = new THREE.Vector3();
     velocity = new THREE.Vector3();
-    #worldVelocity = new THREE.Vector3();
+    worldVelocity = new THREE.Vector3();
 
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 200);
     controls = new PointerLockControls(this.camera, document.body);
@@ -39,7 +39,7 @@ export class Player {
             this.velocity.z = this.input.z;
             this.controls.moveRight(this.velocity.x * dt);
             this.controls.moveForward(this.velocity.z * dt);
-            this.position.y += this.velocity.y * dt;
+            // this.position.y += this.velocity.y * dt;
 
             document.getElementById('player-position').innerHTML = this.toString();
         }

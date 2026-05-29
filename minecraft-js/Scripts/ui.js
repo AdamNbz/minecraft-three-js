@@ -1,9 +1,10 @@
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 import { resources } from './blocks';
+import { Physics } from './physics';
 
 
-export function createUI(world, player, physics) {
+export function createUI(world, player, physics, scene) {
     const gui = new GUI();
 
     const playerFolder = gui.addFolder('Player');
@@ -25,6 +26,12 @@ export function createUI(world, player, physics) {
     // terrainFolder.add(world.params.terrain, 'magnitude', 0, 1).name('Magnitude');
     // terrainFolder.add(world.params.terrain, 'offset', 0, 1).name('Offset');
 
+    const worldFolder = gui.addFolder('World');
+    worldFolder.add(world, 'drawDistance', 1, 10, 1).name('Draw Distance');
+    worldFolder.add(world, 'asyncLoading').name('Async Loading');
+    worldFolder.add(scene.fog, 'near', 1, 200, 1).name('Fog Near');
+    worldFolder.add(scene.fog, 'far', 1, 200, 1).name('Fog Far');
+
 
     const resourcesFolder = gui.addFolder('Resources');
 
@@ -45,6 +52,6 @@ export function createUI(world, player, physics) {
     });
 
     terrainFolder.onChange(() => {
-        world.generate();
+        world.regenerate(player);
     });
 }

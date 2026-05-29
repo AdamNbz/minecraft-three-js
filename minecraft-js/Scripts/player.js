@@ -19,7 +19,7 @@ export class Player {
     cameraHelper = new THREE.CameraHelper(this.camera);
 
     constructor(scene) {
-        this.camera.position.set(32, 16, 32);
+        this.camera.position.set(32, 32, 32);
         scene.add(this.camera);
         scene.add(this.cameraHelper);
 
@@ -28,6 +28,7 @@ export class Player {
             new THREE.MeshBasicMaterial({ wireframe: true })
         );
         scene.add(this.boundsHelper);
+        this.boundsHelper.visible = false;
 
         document.addEventListener('keydown', this.onKeyDown.bind(this));
         document.addEventListener('keyup', this.onKeyUp.bind(this));
@@ -86,7 +87,7 @@ export class Player {
                 this.input.x = this.maxSpeed;
                 break;
             case 'KeyR':
-                this.position.set(32, 16, 32);
+                this.position.set(32, 32, 32);
                 this.velocity.set(0, 0, 0);
                 break;
             case 'Space':

@@ -237,6 +237,33 @@ export class WorldChunk extends THREE.Group {
         this.setBlockId(x, y, z, blocks.empty.id);
 
     }
+    
+    /**
+     * Create a new instance for the block at (x,y,z)
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} z 
+     */
+    addBlockInstance(x, y, z) {
+        const block = this.getBlock(x, y, z);
+
+        // If this block is non-empty and does not already have an instance, create a new one
+        if (block && block.id !== blocks.empty.id && !block.instanceId) {
+            // Append a new instance to the end of our InstancedMesh
+            const mesh = this.children.find((instanceMesh) => instanceMesh.name === block.id);
+            const instanceId = mesh.count++;
+            this.setBlockInstanceId(x, y, z, instanceId);
+
+            // Update the appropriate instanced mesh
+            // Also re-compute the bounding sphere so raycasting works
+            const matrix = new THREE.Matrix4();
+            matrix.setPosition(x, y, z);
+            mesh.setMatrixAt(instanceId, matrix);
+            mesh.instanceMatrix.needsUpdate = true;
+            mesh.computeBoundingSphere();
+        }
+    }
+
 
     /**
      * Sets the block id for the block at (x, y, z)

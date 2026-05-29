@@ -8,6 +8,7 @@ import { blocks, resources } from './blocks';
 import { instance } from 'three/src/nodes/accessors/instancenode';
 import { WorldChunk } from './worldChunk';
 import { Player } from './player';
+import { DataStore } from './dataStore';
 
 const geometry = new THREE.BoxGeometry();
 
@@ -19,6 +20,9 @@ export class World extends THREE.Group {
         width: 32,
         height: 32
     }
+
+
+    dataStore = new DataStore();
 
     constructor(seed = 0) {
         super();
@@ -202,7 +206,7 @@ export class World extends THREE.Group {
     }
 
     generateChunk(x, z) {
-        const chunk = new WorldChunk(this.chunkSize, this.params);
+        const chunk = new WorldChunk(this.chunkSize, this.params, this.dataStore);
         chunk.position.set(x * this.chunkSize.width, 0, z * this.chunkSize.width);
         chunk.userData = { x, z };
         if (this.asyncLoading) {

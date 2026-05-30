@@ -7,6 +7,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 const CENTER_SCREEN = new THREE.Vector2();
 const gltfLoader = new GLTFLoader();
+const skinCount = 3;
 
 export class Player {
     height = 1.75;
@@ -16,6 +17,15 @@ export class Player {
     jumpSpeed = 10;
     sprinting = false;
     onGround = false;
+
+    // Third-person camera state
+    isThirdPerson = false;
+    thirdPersonDistance = 6;
+    thirdPersonHeight = 3;
+    model = null;
+    mixer = null;
+
+    currentSkin = 0;
 
     input = new THREE.Vector3();
     velocity = new THREE.Vector3();
@@ -27,6 +37,14 @@ export class Player {
         0.1,
         100,
     );
+
+    thirdPersonCamera = new THREE.PerspectiveCamera(
+        70,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100,
+    );
+
     cameraHelper = new THREE.CameraHelper(this.camera);
     controls = new PointerLockControls(this.camera, document.body);
     debugCamera = false;
@@ -58,6 +76,7 @@ export class Player {
         this.position.set(32, 32, 32);
         this.cameraHelper.visible = false;
         scene.add(this.camera);
+        scene.add(this.thirdPersonCamera);
         scene.add(this.cameraHelper);
 
         // Hide/show instructions based on pointer controls locking/unlocking
@@ -73,6 +92,7 @@ export class Player {
         // Set raycaster to use layer 0 so it doesn't interact with water mesh on layer 1
         this.raycaster.layers.set(0);
         this.camera.layers.enable(1);
+        this.thirdPersonCamera.layers.enable(1);
 
         // Wireframe mesh visualizing the player's bounding cylinder
         this.boundsHelper = new THREE.Mesh(
@@ -102,7 +122,7 @@ export class Player {
 
         // Load the player GLTF model
         gltfLoader.load(
-            "models/minecraft-creeper/source/model.gltf",
+            "models/minecraft-player/source/model.gltf",
 
             (gltf) => {
                 this.model = gltf.scene;
@@ -110,7 +130,7 @@ export class Player {
                 // The GLTF model is very large (coords up to ~273 units).
                 // Scale it down so the player height (~1.75 blocks) looks right.
                 // The model's Y range is roughly 0–273, so scale = 1.75/273 ≈ 0.0064
-                const modelScale = 0.1;
+                const modelScale = 1.5;
                 this.model.scale.set(modelScale, modelScale, modelScale);
 
                 // Ensure pixel-art textures stay crisp (nearest-neighbor filtering)
@@ -131,8 +151,26 @@ export class Player {
                 // Set up animation mixer if the model has animations
                 if (gltf.animations && gltf.animations.length > 0) {
                     this.mixer = new THREE.AnimationMixer(this.model);
-                    const action = this.mixer.clipAction(gltf.animations[0]);
-                    action.play();
+                    this.actions = {};
+                    gltf.animations.forEach((clip) => {
+                        this.actions[clip.name] = this.mixer.clipAction(clip);
+                    });
+
+                    // Speed up the walk animation
+                    if (this.actions["walking_test"]) {
+                        this.actions["walking_test"].timeScale = 10.0;
+                    }
+
+                    if (this.actions["still_test"]) {
+                        this.actions["still_test"].play();
+                        this.currentAction = this.actions["still_test"];
+                    } else {
+                        const action = this.mixer.clipAction(
+                            gltf.animations[0],
+                        );
+                        action.play();
+                        this.currentAction = action;
+                    }
                 }
 
                 scene.add(this.model);
@@ -172,7 +210,7 @@ export class Player {
      * Updates the state of the player
      * @param {World} world
      */
-    update(world) {
+    update(dt, world) {
         this.updateBoundsHelper();
         this.updateRaycaster(world);
 
@@ -181,15 +219,143 @@ export class Player {
             this.model.position.copy(this.camera.position);
             this.model.position.y -= this.height;
 
-            // Only apply yaw rotation (Y-axis) so the model doesn't tilt
-            // with the camera's pitch
-            const euler = new THREE.Euler(0, this.camera.rotation.y, 0);
-            this.model.rotation.copy(euler);
+            if (this.input.x !== 0 || this.input.z !== 0) {
+                const yaw = this.camera.rotation.y;
+                const angle = Math.atan2(this.input.x, this.input.z) + yaw;
+                this.model.rotation.y = angle + Math.PI;
+            } else {
+                this.model.rotation.y = this.camera.rotation.y + Math.PI;
+            }
+
+            // Show model only in third-person, hide in first-person
+            this.model.visible = this.isThirdPerson;
+        }
+
+        // Update third-person camera to follow player
+        this.updateThirdPersonCamera();
+
+        // Update animation mixer
+        if (this.mixer) {
+            this.mixer.update(dt);
+
+            if (this.input.x !== 0 || this.input.z !== 0) {
+                this.playAnimation("walking_test");
+            } else {
+                this.playAnimation("still_test");
+            }
         }
 
         if (this.tool.animate) {
             this.updateToolAnimation();
         }
+    }
+
+    /**
+     * Plays the specified animation
+     * @param {string} name
+     */
+    playAnimation(name) {
+        if (
+            !this.actions ||
+            !this.actions[name] ||
+            this.currentAction === this.actions[name]
+        ) {
+            if (name === "walking_test") {
+                this.currentAction.timeScale = this.sprinting ? 7.0 : 3.0;
+            } else {
+                this.#worldVelocity.timeScale = 1.0;
+            }
+            return;
+        }
+        const newAction = this.actions[name];
+        if (this.currentAction) {
+            newAction.reset();
+            newAction.play();
+            newAction.crossFadeFrom(this.currentAction, 0.2, true);
+        } else {
+            newAction.play();
+        }
+
+        if (name === "walking_test") {
+            newAction.timeScale = this.sprinting ? 10.0 : 5.0;
+        } else {
+            newAction.timeScale = 1.0;
+        }
+
+        this.currentAction = newAction;
+    }
+
+    /**
+     * Changes the texture of the player model at runtime
+     * @param {string} texturePath - Path to the new texture file
+     */
+    setModelTexture(texturePath) {
+        if (!this.model) return;
+
+        const textureLoader = new THREE.TextureLoader();
+        const newTexture = textureLoader.load(texturePath, () => {
+            newTexture.magFilter = THREE.NearestFilter;
+            newTexture.minFilter = THREE.NearestFilter;
+            newTexture.flipY = false; // GLTF models usually need this
+
+            this.model.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    const mats = Array.isArray(child.material)
+                        ? child.material
+                        : [child.material];
+                    for (const mat of mats) {
+                        mat.map = newTexture;
+                        mat.needsUpdate = true;
+                    }
+                }
+            });
+        });
+        console.log(`Changing player skin to ${texturePath}`);
+    }
+    /**
+     * Updates the third-person camera position to follow behind and above
+     * the player, looking down at them.
+     */
+    updateThirdPersonCamera() {
+        const yaw = this.camera.rotation.y;
+
+        // Compute offset: behind the player and above
+        // "Behind" means opposite of the facing direction on the XZ plane
+        const offsetX = -Math.sin(yaw) * this.thirdPersonDistance;
+        const offsetZ = Math.cos(yaw) * this.thirdPersonDistance;
+
+        this.thirdPersonCamera.position.set(
+            this.camera.position.x + offsetX,
+            this.camera.position.y + this.thirdPersonHeight,
+            this.camera.position.z + offsetZ,
+        );
+
+        // Look at the player's head position
+        this.thirdPersonCamera.lookAt(this.camera.position);
+    }
+
+    /**
+     * Returns the camera that should be used for rendering
+     * @returns {THREE.PerspectiveCamera}
+     */
+    getActiveCamera() {
+        return this.isThirdPerson ? this.thirdPersonCamera : this.camera;
+    }
+
+    /**
+     * Toggle between first-person and third-person camera
+     */
+    toggleCameraMode() {
+        this.isThirdPerson = !this.isThirdPerson;
+
+        // Hide the tool/hand in third-person, show in first-person
+        this.tool.container.visible = this.isThirdPerson
+            ? false
+            : this.activeBlockId === 0;
+
+        console.log(
+            `Camera mode: ${this.isThirdPerson ? "Third Person" : "First Person"}`,
+        );
     }
 
     /**
@@ -241,8 +407,27 @@ export class Player {
         if (this.controls.isLocked === true) {
             this.velocity.x = this.input.x * (this.sprinting ? 1.5 : 1);
             this.velocity.z = this.input.z * (this.sprinting ? 1.5 : 1);
-            this.controls.moveRight(this.velocity.x * dt);
-            this.controls.moveForward(this.velocity.z * dt);
+            if (!this.isThirdPerson) {
+                // Move in the direction the pointer lock camera is facing
+                this.controls.moveRight(this.velocity.x * dt);
+                this.controls.moveForward(this.velocity.z * dt);
+            } else {
+                const yaw = this.camera.rotation.y;
+
+                const forward = new THREE.Vector3(
+                    -Math.sin(yaw) * this.velocity.z,
+                    0,
+                    -Math.cos(yaw) * this.velocity.z,
+                );
+                const right = new THREE.Vector3(
+                    Math.cos(yaw) * this.velocity.x,
+                    0,
+                    -Math.sin(yaw) * this.velocity.x,
+                );
+
+                const move = forward.add(right);
+                this.camera.position.add(move.multiplyScalar(dt));
+            }
             this.position.y += this.velocity.y * dt;
 
             if (this.position.y < 0) {
@@ -380,9 +565,18 @@ export class Player {
                     this.velocity.y += this.jumpSpeed;
                 }
                 break;
-            case "F10":
+            case "KeyO":
+                this.toggleCameraMode();
+                break;
+            case "KeyP":
                 this.debugCamera = true;
                 this.controls.unlock();
+                break;
+            case "KeyT":
+                this.currentSkin = (this.currentSkin + 1) % skinCount;
+                this.setModelTexture(
+                    `models/minecraft-player/textures/gltf_embedded_${this.currentSkin}.png`,
+                );
                 break;
         }
     }

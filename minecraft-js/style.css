@@ -60,7 +60,6 @@ img {
     image-rendering: -moz-crisp-edges;
     image-rendering: -o-pixelated;
     image-rendering: pixelated;
-    -ms-interpolation-mode: nearest-neighbor; /* IE fallback */
 }
 
 .toolbar-icon.selected {

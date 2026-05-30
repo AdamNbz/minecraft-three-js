@@ -7,7 +7,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 const CENTER_SCREEN = new THREE.Vector2();
 const gltfLoader = new GLTFLoader();
-const skinCount = 3;
+const skinCount = 5;
 
 export class Player {
     height = 1.75;
@@ -143,6 +143,7 @@ export class Player {
                             if (mat.map) {
                                 mat.map.magFilter = THREE.NearestFilter;
                                 mat.map.minFilter = THREE.NearestFilter;
+                                mat.map.colorSpace = THREE.SRGBColorSpace;
                             }
                         }
                     }
@@ -297,6 +298,7 @@ export class Player {
             newTexture.magFilter = THREE.NearestFilter;
             newTexture.minFilter = THREE.NearestFilter;
             newTexture.flipY = false; // GLTF models usually need this
+            newTexture.colorSpace = THREE.SRGBColorSpace;
 
             this.model.traverse((child) => {
                 if (child.isMesh && child.material) {

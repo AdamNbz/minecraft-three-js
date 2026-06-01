@@ -55,10 +55,10 @@ const mobModelConfigs = [
     //{ path: "models/anim-creeper/source/model.gltf", scale: 0.02 },
     {
         path: "models/big-spider/model.gltf",
-        scale: 0.3,
+        scale: 0.4,
     },
-    { path: "models/hippo/model.gltf", scale: 0.5 },
-    { path: "models/minecraft-wolf/scene.gltf", scale: 0.1 },
+    { path: "models/hippo/model.gltf", scale: 0.8 },
+    { path: "models/crocodile/model.gltf", scale: 1 },
 ];
 
 function spawnMobs(count) {

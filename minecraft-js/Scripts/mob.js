@@ -3,8 +3,8 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { blocks } from "./blocks";
 
 const gltfLoader = new GLTFLoader();
-const DEFAULT_IDLE_ANIMATIONS = ["idle", "still", "still_test"];
-const DEFAULT_WALK_ANIMATIONS = ["walk", "walking", "walking_test"];
+const DEFAULT_IDLE_ANIMATIONS = ["idle", "Idle", "still", "still_test"];
+const DEFAULT_WALK_ANIMATIONS = ["walk", "Walk", "walking", "walking_test"];
 const TREE_BLOCK_IDS = new Set([
     blocks.tree.id,
     blocks.jungleTree.id,
@@ -71,41 +71,17 @@ export class Mob {
                 this.model = gltf.scene;
                 this.model.scale.setScalar(this.scale);
 
+                // Ensure pixel-art textures stay crisp (nearest-neighbor filtering)
                 this.model.traverse((child) => {
-                    if (child.isMesh) {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-
-                        const materials = Array.isArray(child.material)
+                    if (child.isMesh && child.material) {
+                        const mats = Array.isArray(child.material)
                             ? child.material
                             : [child.material];
-
-                        for (const material of materials) {
-                            if (
-                                !material ||
-                                this.materialStates.some(
-                                    (state) => state.material === material,
-                                )
-                            ) {
-                                continue;
-                            }
-
-                            this.materialStates.push({
-                                material,
-                                baseColor: material.color?.clone() ?? null,
-                                baseEmissive:
-                                    material.emissive?.clone() ?? null,
-                                baseEmissiveIntensity:
-                                    typeof material.emissiveIntensity ===
-                                    "number"
-                                        ? material.emissiveIntensity
-                                        : null,
-                            });
-
-                            if (material?.map) {
-                                material.map.magFilter = THREE.NearestFilter;
-                                material.map.minFilter = THREE.NearestFilter;
-                                material.map.colorSpace = THREE.SRGBColorSpace;
+                        for (const mat of mats) {
+                            if (mat.map) {
+                                mat.map.magFilter = THREE.NearestFilter;
+                                mat.map.minFilter = THREE.NearestFilter;
+                                mat.map.colorSpace = THREE.SRGBColorSpace;
                             }
                         }
                     }

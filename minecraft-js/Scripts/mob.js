@@ -276,7 +276,10 @@ export class Mob {
         );
 
         if (groundY !== null) {
+            this._lastGroundY = groundY;
             this.container.position.y = groundY;
+        } else if (this._lastGroundY !== undefined) {
+            this.container.position.y = this._lastGroundY;
         }
     }
 
@@ -511,7 +514,7 @@ export class Mob {
     }
 
     isGroundBlock(blockId) {
-        return !this.isTreeBlock(blockId) && blockId !== 0;
+        return blockId !== 0 && blockId !== 9 && !this.isTreeBlock(blockId);
     }
 
     clampPointToRoamArea(point) {

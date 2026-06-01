@@ -229,7 +229,7 @@ export class Player {
             }
 
             // Show model only in third-person, hide in first-person
-            this.model.visible = this.isThirdPerson || this.debugCamera;
+            this.model.visible = this.isThirdPerson;
         }
 
         // Update third-person camera to follow player
@@ -512,7 +512,7 @@ export class Player {
      * @param {KeyboardEvent} event
      */
     onKeyDown(event) {
-        if (!this.controls.isLocked) {
+        if (!this.controls.isLocked && event.code !== "KeyP") {
             this.debugCamera = false;
             this.controls.lock();
         }
@@ -571,8 +571,15 @@ export class Player {
                 this.toggleCameraMode();
                 break;
             case "KeyP":
-                this.debugCamera = true;
-                this.controls.unlock();
+                if (!this.debugCamera) {
+                    this.debugCamera = true;
+                    this.controls.unlock();
+                    this.model.visible = true;
+                } else {
+                    this.debugCamera = false;
+                    this.controls.lock();
+                }
+                console.log(`Debug camera: ${this.debugCamera}`);
                 break;
             case "KeyT":
                 this.currentSkin = (this.currentSkin + 1) % skinCount;

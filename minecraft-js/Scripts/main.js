@@ -50,20 +50,38 @@ const modelLoader = new ModelLoader((models) => {
 });
 
 const mobs = [];
-const mobModelPath = "models/minecraft-creeper/source/model.gltf";
+const mobModelConfigs = [
+    { path: "models/minecraft-creeper/source/model.gltf", scale: 0.1 },
+    //{ path: "models/anim-creeper/source/model.gltf", scale: 0.02 },
+    {
+        path: "models/big-spider/model.gltf",
+        scale: 0.3,
+    },
+    { path: "models/hippo/model.gltf", scale: 0.5 },
+    { path: "models/minecraft-wolf/scene.gltf", scale: 0.1 },
+];
 
 function spawnMobs(count) {
     for (let i = 0; i < count; i++) {
         const x = 36 + (Math.random() - 0.5) * 20;
         const z = 36 + (Math.random() - 0.5) * 20;
-        const pos = new THREE.Vector3(x, 32, z);
+        const pos = new THREE.Vector3(x, 20, z);
+        const config =
+            mobModelConfigs[Math.floor(Math.random() * mobModelConfigs.length)];
         const m = new Mob(scene, world, {
-            modelPath: mobModelPath,
-            position: pos,
-            scale: 0.02,
-            walkSpeed: 1.0 + Math.random() * 0.6,
-            roamRadius: 8 + Math.random() * 8,
-            idleChance: 0.4,
+            modelPath: config.path,
+            position: config.position !== undefined ? config.position : pos,
+            scale: config.scale !== undefined ? config.scale : 0.5,
+            walkSpeed:
+                config.walkSpeed !== undefined
+                    ? config.walkSpeed
+                    : 1.0 + Math.random() * 0.6,
+            roamRadius:
+                config.roamRadius !== undefined
+                    ? config.roamRadius
+                    : 8 + Math.random() * 8,
+            idleChance:
+                config.idleChance !== undefined ? config.idleChance : 0.4,
         });
         mobs.push(m);
     }

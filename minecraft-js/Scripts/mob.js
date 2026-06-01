@@ -93,9 +93,11 @@ export class Mob {
                             this.materialStates.push({
                                 material,
                                 baseColor: material.color?.clone() ?? null,
-                                baseEmissive: material.emissive?.clone() ?? null,
+                                baseEmissive:
+                                    material.emissive?.clone() ?? null,
                                 baseEmissiveIntensity:
-                                    typeof material.emissiveIntensity === "number"
+                                    typeof material.emissiveIntensity ===
+                                    "number"
                                         ? material.emissiveIntensity
                                         : null,
                             });
@@ -109,10 +111,11 @@ export class Mob {
                     }
                 });
 
+                this.model.updateMatrixWorld(true);
                 const bounds = new THREE.Box3().setFromObject(this.model);
                 const size = bounds.getSize(new THREE.Vector3());
-                this.modelOffsetY = -bounds.min.y;
-                this.model.position.y = this.modelOffsetY;
+                this.modelOffsetY = -bounds.min.y * this.scale;
+                this.model.position.y = this.modelOffsetY - 0.5;
                 this.colliderRadius = Math.max(
                     0.25,
                     Math.max(size.x, size.z) * 0.28,
@@ -132,7 +135,10 @@ export class Mob {
             },
             undefined,
             (error) => {
-                console.error(`Failed to load mob model from ${modelPath}:`, error);
+                console.error(
+                    `Failed to load mob model from ${modelPath}:`,
+                    error,
+                );
                 this.model = new THREE.Object3D();
                 this.container.add(this.model);
             },
@@ -215,22 +221,28 @@ export class Mob {
         }
 
         this.idleFlashTime += dt;
-        const pulse = 0.5 + 0.5 * Math.sin(this.idleFlashTime * this.idleFlashSpeed);
-        const shade = this.idleFlashMin + (this.idleFlashMax - this.idleFlashMin) * pulse;
+        const pulse =
+            0.5 + 0.5 * Math.sin(this.idleFlashTime * this.idleFlashSpeed);
+        const shade =
+            this.idleFlashMin + (this.idleFlashMax - this.idleFlashMin) * pulse;
 
         for (const state of this.materialStates) {
-            const { material, baseColor, baseEmissive, baseEmissiveIntensity } = state;
+            const { material, baseColor, baseEmissive, baseEmissiveIntensity } =
+                state;
 
             if (baseColor && material.color) {
                 material.color.copy(baseColor).multiplyScalar(shade);
             }
 
             if (baseEmissive && material.emissive) {
-                material.emissive.copy(baseEmissive).multiplyScalar(0.85 + pulse * this.idleFlashEmissive);
+                material.emissive
+                    .copy(baseEmissive)
+                    .multiplyScalar(0.85 + pulse * this.idleFlashEmissive);
             }
 
             if (baseEmissiveIntensity !== null) {
-                material.emissiveIntensity = baseEmissiveIntensity + pulse * this.idleFlashEmissive;
+                material.emissiveIntensity =
+                    baseEmissiveIntensity + pulse * this.idleFlashEmissive;
             }
         }
     }
@@ -239,7 +251,8 @@ export class Mob {
         this.idleFlashTime = 0;
 
         for (const state of this.materialStates) {
-            const { material, baseColor, baseEmissive, baseEmissiveIntensity } = state;
+            const { material, baseColor, baseEmissive, baseEmissiveIntensity } =
+                state;
 
             if (baseColor && material.color) {
                 material.color.copy(baseColor);
@@ -336,7 +349,9 @@ export class Mob {
         for (let i = 0; i < pathLength; i++) {
             const direction = this.pickWalkDirection();
             const distance = 2 + Math.random() * this.roamRadius;
-            const nextPoint = cursor.clone().addScaledVector(direction, distance);
+            const nextPoint = cursor
+                .clone()
+                .addScaledVector(direction, distance);
             nextPoint.y = cursor.y;
 
             const clampedPoint = this.clampPointToRoamArea(nextPoint);
@@ -391,7 +406,13 @@ export class Mob {
             return false;
         }
 
-        if (!this.isPathSegmentClear(world, this.container.position, nextPosition)) {
+        if (
+            !this.isPathSegmentClear(
+                world,
+                this.container.position,
+                nextPosition,
+            )
+        ) {
             this.clearPath();
             return false;
         }
@@ -451,7 +472,12 @@ export class Mob {
                 return false;
             }
 
-            if (block && block.id !== 0 && y > groundY && !this.isGroundBlock(block.id)) {
+            if (
+                block &&
+                block.id !== 0 &&
+                y > groundY &&
+                !this.isGroundBlock(block.id)
+            ) {
                 return false;
             }
         }
@@ -460,10 +486,12 @@ export class Mob {
     }
 
     isTreeCollisionAhead(world) {
-        const ahead = this.container.position.clone().addScaledVector(
-            this.direction,
-            Math.max(0.5, this.walkSpeed * 0.25),
-        );
+        const ahead = this.container.position
+            .clone()
+            .addScaledVector(
+                this.direction,
+                Math.max(0.5, this.walkSpeed * 0.25),
+            );
 
         return this.isTreeBlockingAt(world, ahead.x, ahead.z);
     }
@@ -526,7 +554,11 @@ export class Mob {
 
     pickWalkDirection() {
         const angle = Math.random() * Math.PI * 2;
-        return new THREE.Vector3(Math.sin(angle), 0, Math.cos(angle)).normalize();
+        return new THREE.Vector3(
+            Math.sin(angle),
+            0,
+            Math.cos(angle),
+        ).normalize();
     }
 
     randomDirection() {

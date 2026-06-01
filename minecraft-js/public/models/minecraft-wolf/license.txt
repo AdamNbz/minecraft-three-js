@@ -1,11 +1,11 @@
 Model Information:
-* title:	Minecraft - Wolf
-* source:	https://sketchfab.com/3d-models/minecraft-wolf-9aa99b5c203240f7ac357c4e8b84e1d6
-* author:	Vincent Yanez (https://sketchfab.com/vinceyanez)
+* title:	Wolf (Dog) Minecraft
+* source:	https://sketchfab.com/3d-models/wolf-dog-minecraft-9e35487f302545d49f9b5617564dae63
+* author:	kuzneciv (https://sketchfab.com/kuzneciv)
 
 Model License:
 * license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
 * requirements:	Author must be credited. Commercial use is allowed.
 
 If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
-This work is based on "Minecraft - Wolf" (https://sketchfab.com/3d-models/minecraft-wolf-9aa99b5c203240f7ac357c4e8b84e1d6) by Vincent Yanez (https://sketchfab.com/vinceyanez) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+This work is based on "Wolf (Dog) Minecraft" (https://sketchfab.com/3d-models/wolf-dog-minecraft-9e35487f302545d49f9b5617564dae63) by kuzneciv (https://sketchfab.com/kuzneciv) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -229,7 +229,7 @@ export class Player {
             }
 
             // Show model only in third-person, hide in first-person
-            this.model.visible = this.isThirdPerson;
+            this.model.visible = this.isThirdPerson || this.debugCamera;
         }
 
         // Update third-person camera to follow player

@@ -9,8 +9,8 @@ import { ModelLoader } from "./modelLoader";
 import { Mob } from "./mob";
 
 // UI Setup
-const stats = new Stats();
-document.body.appendChild(stats.dom);
+// const stats = new Stats();
+// document.body.appendChild(stats.dom);
 
 // Renderer setup
 const renderer = new THREE.WebGLRenderer();
@@ -166,6 +166,6 @@ window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-setupUI(world, player, physics, scene);
+//setupUI(world, player, physics, scene);
 setupLights();
 animate();

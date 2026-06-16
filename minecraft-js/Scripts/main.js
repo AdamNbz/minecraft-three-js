@@ -9,8 +9,8 @@ import { ModelLoader } from "./modelLoader";
 import { Mob } from "./mob";
 
 // UI Setup
-// const stats = new Stats();
-// document.body.appendChild(stats.dom);
+//const stats = new Stats();
+//document.body.appendChild(stats.dom);
 
 // Renderer setup
 const renderer = new THREE.WebGLRenderer();
@@ -148,7 +148,7 @@ function animate() {
         scene,
         player.controls.isLocked ? player.getActiveCamera() : orbitCamera,
     );
-    stats.update();
+    //stats.update();
 
     previousTime = currentTime;
 }

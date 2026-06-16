@@ -438,8 +438,8 @@ export class Player {
             }
         }
 
-        document.getElementById("info-player-position").innerHTML =
-            this.toString();
+        // document.getElementById("info-player-position").innerHTML =
+        //     this.toString();
     }
 
     /**
